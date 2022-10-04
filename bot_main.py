@@ -29,13 +29,22 @@ async def send_welcome(message: types.Message):
 	await message.reply("Hi!\nI am FESTU shedule bot", 
 		reply_markup=keyboard)
 
-@dp.message_handler(commands=["Расписание"])
-async def send_welcome(message: types.Message):
+@dp.message_handler(commands=["расписание"])
+async def send_shedule(message: types.Message):
 	"""
 	This handler will be called when user asks
 	info about shedule by pushing button "/расписание" 
 	"""
-	
+	pass
+
+@dp.message_handler(commands=['рейтинг'])
+async def send_rating(message: types.Message):
+	"""
+	This handler will be called when user sends
+	"рейтинг"
+	"""
+	pass
+
 
 @dp.message_handler()
 async def not_understand(message:types.Message):
