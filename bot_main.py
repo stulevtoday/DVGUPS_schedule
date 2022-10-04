@@ -17,11 +17,21 @@ async def send_welcome(message: types.Message):
 	This handler will be called when user sends 
 	"/start" and "/help"
 	"""
-	await message.reply("Hi!\nI am FESTU shedule bot")
+	# keyboard
+	# resize_keyboard - fits keyboard buttons
+	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
+		one_time_keyboard=True)
+	shedule_button = types.KeyboardButton(text="/Расписание")
+	rating_button = types.KeyboardButton(text="/Рейтинг")
+
+	keyboard.add(shedule_button, rating_button)
+
+	await message.reply("Hi!\nI am FESTU shedule bot", 
+		reply_markup=keyboard)
 
 @dp.message_handler()
 async def echo(message:types.Message):
-	await message.answer(message.text)
+	await message.answer("Прости, не понимаю тебя")
 
 
 if __name__ == "__main__":
