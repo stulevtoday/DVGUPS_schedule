@@ -13,7 +13,7 @@ driver = webdriver.Chrome(
 
 schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&view=newtimetable'
 
-
+# function
 def schedule(*, url: str):
     from time import sleep
     from selenium.webdriver.support.select import Select
