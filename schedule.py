@@ -27,7 +27,7 @@ try:
     select_object = Select(select_element)
     select_object.select_by_value('2')
 
-    sleep(4)
+    sleep(2)
 
     # todo: group
     select_element = driver.find_element(By.NAME, 'group')
