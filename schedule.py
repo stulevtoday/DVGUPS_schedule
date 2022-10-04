@@ -19,20 +19,17 @@ try:
 
     # todo: time
     select_element = driver.find_element(By.NAME, 'time')
-    select_object = Select(select_element)
-    select_object.select_by_value('12.09.2022')
+    Select(select_element).select_by_value('12.09.2022')
 
     # todo: facultet
     select_element = driver.find_element(By.NAME, 'facultet')
-    select_object = Select(select_element)
-    select_object.select_by_value('2')
+    Select(select_element).select_by_value('2')
 
     sleep(2)
 
     # todo: group
     select_element = driver.find_element(By.NAME, 'group')
-    select_object = Select(select_element)
-    select_object.select_by_value('52752')
+    Select(select_element).select_by_value('52752')
 
     sleep(2)
 
