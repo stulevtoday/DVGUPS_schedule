@@ -21,16 +21,24 @@ async def send_welcome(message: types.Message):
 	# resize_keyboard - fits keyboard buttons
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
 		one_time_keyboard=True)
-	shedule_button = types.KeyboardButton(text="/Расписание")
-	rating_button = types.KeyboardButton(text="/Рейтинг")
+	shedule_button = types.KeyboardButton(text="/расписание")
+	rating_button = types.KeyboardButton(text="/рейтинг")
 
 	keyboard.add(shedule_button, rating_button)
 
 	await message.reply("Hi!\nI am FESTU shedule bot", 
 		reply_markup=keyboard)
 
+@dp.message_handler(commands=["Расписание"])
+async def send_welcome(message: types.Message):
+	"""
+	This handler will be called when user asks
+	info about shedule by pushing button "/расписание" 
+	"""
+	
+
 @dp.message_handler()
-async def echo(message:types.Message):
+async def not_understand(message:types.Message):
 	await message.answer("Прости, не понимаю тебя")
 
 
