@@ -2,3 +2,5 @@
 \venv
 \chromedriver_win32
 \check_chromedriver.py
+settings.py
+\__pycache__/
