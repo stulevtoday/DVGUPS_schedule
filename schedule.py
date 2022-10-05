@@ -15,6 +15,7 @@ schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&vie
 
 # function
 def schedule(*, url: str):
+    global date_id
     from time import sleep
     from selenium.webdriver.support.select import Select
 
@@ -24,7 +25,7 @@ def schedule(*, url: str):
     try:
         # select timeline
         select_element = driver.find_element(By.NAME, 'time')
-        Select(select_element).select_by_value('12.09.2022')
+        Select(select_element).select_by_value('26.09.2022')
 
         # select facultet
         select_element = driver.find_element(By.NAME, 'facultet')
@@ -38,15 +39,18 @@ def schedule(*, url: str):
 
         sleep(2)
 
-        # screenshot schedule / by day ll including later
+        # screenshot schedule / by day optional
         select_element = driver.find_element(By.ID, 'curGroup')
         header_elements = select_element.find_elements(By.TAG_NAME, 'h3')
         headers = []
         for header in header_elements:
             headers.append(header.text)
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
-        for id in range(len(schedule_elements)):
-            schedule_elements[id].screenshot(headers[id] + '.png')
+        date_request = input('Input date: ')
+        for id in range(len(headers)):
+            if headers[id].find(date_request):
+                date_id = id
+        schedule_elements[date_id].screenshot(headers[date_id] + '.png')
 
     except Exception as ex:
         print(ex)
