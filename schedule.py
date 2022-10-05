@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 options = Options()
 options.add_argument("start-maximized")
 driver = webdriver.Chrome(
-    service=Service(r'C:\Users\Danil\PycharmProjects\selenium\chromedriver_win32\chromedriver.exe'),
+    service=Service(r'chromedriver_win32\chromedriver.exe'),
     options=options)  # Optional argument, if not specified will search path.
 
 schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&view=newtimetable'
