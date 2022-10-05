@@ -14,7 +14,7 @@ driver = webdriver.Chrome(
 schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&view=newtimetable'
 
 # function
-def schedule(*, url: str):
+def schedule(*, url: str, time: str, facultet: str, group: str):
     global date_id
     from time import sleep
     from selenium.webdriver.support.select import Select
@@ -25,17 +25,17 @@ def schedule(*, url: str):
     try:
         # select timeline
         select_element = driver.find_element(By.NAME, 'time')
-        Select(select_element).select_by_value('26.09.2022')
+        Select(select_element).select_by_value(time)
 
         # select facultet
         select_element = driver.find_element(By.NAME, 'facultet')
-        Select(select_element).select_by_value('2')
+        Select(select_element).select_by_value(facultet)
 
         sleep(2)
 
         # select group
         select_element = driver.find_element(By.NAME, 'group')
-        Select(select_element).select_by_value('52752')
+        Select(select_element).select_by_value(group)
 
         sleep(2)
 
@@ -59,4 +59,4 @@ def schedule(*, url: str):
         driver.close()
         driver.quit()
 
-schedule(url = schedule_url)
+schedule(url = schedule_url, time = '26.09.2022', facultet = '2', group = '52752')
