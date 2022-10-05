@@ -1,4 +1,3 @@
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -41,15 +40,20 @@ def schedule(*, url: str, time: str, facultet: str, group: str):
 
         # screenshot schedule / by day optional
         select_element = driver.find_element(By.ID, 'curGroup')
+        sleep(2)
         header_elements = select_element.find_elements(By.TAG_NAME, 'h3')
         headers = []
         for header in header_elements:
-            headers.append(header.text)
+            h = header.text.split('.')[:2]
+            headers.append('.'.join(h))
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
+        print(headers)
         date_request = input('Input date: ')
         for id in range(len(headers)):
             if headers[id].find(date_request):
-                date_id = id
+                date_id = id + 1
+            else:
+                break
         schedule_elements[date_id].screenshot(headers[date_id] + '.png')
 
     except Exception as ex:
