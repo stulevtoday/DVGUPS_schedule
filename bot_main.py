@@ -66,12 +66,15 @@ async def send_welcome(message: types.Message):
 	shedule_button = types.KeyboardButton(text="расписание")
 	rating_button = types.KeyboardButton(text="успеваемость")
 
-	keyboard.add(shedule_button, rating_button)
-
-	await message.answer("""Возможности:
+	settings_button = types.KeyboardButton(text="настройки")
+	keyboard.row(shedule_button, rating_button)
+	keyboard.add(settings_button)
+	line = """Возможности:
 		\nрасписание - получить расписание
-		\nуспеваемость - получить успеваемость""", 
-		reply_markup=keyboard)
+		\nуспеваемость - получить успеваемость
+		\nнастройки - изменить данные / получить информацию о разработчиках"""
+
+	await message.answer(line, reply_markup=keyboard)
 
 @dp.message_handler(commands=["расписание"])
 async def send_shedule(message: types.Message):
@@ -79,8 +82,7 @@ async def send_shedule(message: types.Message):
 	This handler will be called when user asks
 	info about shedule by pushing button "/расписание" 
 	"""
-	markup = types.ReplyKeyboardMarkup(resize_keyboard=True,
-		)
+	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	today_button = types.KeyboardButton(text="/сегодня")
 	tommorow_button = types.KeyboardButton(text="/завтра")
 	back_button = types.KeyboardButton(text='/назад')
@@ -90,6 +92,13 @@ async def send_shedule(message: types.Message):
 	await message.reply("На какой вам день?", 
 		reply_markup=markup)
 
+@dp.message_handler(commands=["сегодня", "завтра"])
+async def send_timetable_for(message: types.Message):
+	if message.text == "/сегодня":
+		await message.answer("расписание на сегодня")
+	elif message.text == "/завтра":
+		await message.answer("расписание на завтра")
+
 @dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
 	"""
@@ -98,15 +107,46 @@ async def send_rating(message: types.Message):
 	"""
 	await message.answer("успеваемость")
 
+@dp.message_handler(commands=["настройки"])
+async def send_settings(message: types.Message):
+	"""
+	This handler will be called when user sends
+	"настройки" or "/настройки"
+	"""
+	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+	change_group = types.KeyboardButton(text="изменить группу")
+	change_name = types.KeyboardButton(text="изменить ФИО")
+	about_developers = types.KeyboardButton(text="О разработчиках")
 
-@dp.message_handler(commands=["сегодня", "завтра"])
-async def send_timetable_for(message: types.Message):
-	if message.text == "/сегодня":
-		await message.answer("расписание на сегодня")
-	elif message.text == "/завтра":
-		await message.answer("расписание на завтра")
+	markup.row(change_group, change_name)
+	markup.add(about_developers)
 
+	line = """Опции:
+				\nизменить группу - изменить номер группы
+				\nизменить ФИО - указать новые данные ФИО
+				\nО разработчиках - узнать больше о студентах ДВГУПСа, которые разработали всё это"""
+	await message.answer(line, reply_markup=markup)
 
+@dp.message_handler(commands=["разработчики"])
+async def about_devs(message: types.Message):
+	"""
+	This handler will send info about us
+	"""
+	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+	firuz_button = types.KeyboardButton(text="о Фирузе")
+	danya_button = types.KeyboardButton(text="о Дане")
+	vlad_button = types.KeyboardButton(text="о Владе")
+
+	info_line = """Мы, студенты ДВГУПСа программной инженерии,\
+	решили создать всё это, чтобы ваша жизнь стала чуточку легче:
+	\nФируз - создал бота на aiogram
+	\nДаня - создал парсер на основе selenium'а
+	\nВлад - создал базу данных с использованием SQL
+	\nПодробнее о нас вы можете узнать, кликнув по кнопке"""
+
+	markup.row(firuz_button, danya_button)
+	markup.add(vlad_button)
+	await message.answer(info_line, reply_markup=markup)
 
 @dp.message_handler()
 async def not_understand(message:types.Message):
@@ -115,6 +155,10 @@ async def not_understand(message:types.Message):
 		await send_shedule(message)
 	elif "успеваемость" in row:
 		await send_rating(message)
+	elif "настройки" in row:
+		await send_settings(message)
+	elif "о разработчиках" in row:
+		await about_devs(message)
 	else:
 		await message.answer("Прости, не понимаю тебя")
 
