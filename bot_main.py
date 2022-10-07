@@ -107,6 +107,7 @@ async def send_rating(message: types.Message):
 	"рейтинг"
 	"""
 	await message.answer("успеваемость")
+	await send_welcome(message)
 
 @dp.message_handler(commands=["настройки"])
 async def send_settings(message: types.Message):
@@ -115,12 +116,12 @@ async def send_settings(message: types.Message):
 	"настройки" or "/настройки"
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	change_group = types.KeyboardButton(text="изменить группу")
-	change_name = types.KeyboardButton(text="изменить ФИО")
+	change_group = types.KeyboardButton(text="изменить инфо")
 	about_developers = types.KeyboardButton(text="О разработчиках")
+	back_button = types.KeyboardButton(text="вернуться к настройкам")
 
-	markup.row(change_group, change_name)
-	markup.add(about_developers)
+	markup.row(change_group, about_developers)
+	markup.add(back_button)
 
 	line = """Опции:
 				\nизменить группу - изменить номер группы
@@ -128,13 +129,26 @@ async def send_settings(message: types.Message):
 				\nО разработчиках - узнать больше о студентах ДВГУПСа, которые разработали всё это"""
 	await message.answer(line, reply_markup=markup)
 
+@dp.message_handler(commands=['изменить инфо'])
+async def change_info(message: types.Message):
+	"""
+	This handler will ...
+	"""
+	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+	change_name = types.KeyboardButton(text="изменить ФИО")
+	change_group = types.KeyboardButton(text="изменить группу")
+	back_button = types.KeyboardButton(text="всё верно")
+
+	markup.row(change_name, change_group)
+	markup.add(back_button)
+
+	await message.answer("Изменить профиль", reply_markup=markup)
 @dp.message_handler(commands=["разработчики"])
 async def about_devs(message: types.Message):
 	"""
 	This handler will send info about us
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	back_button = types.KeyboardButton(text="Назад")
 
 	info_line = """Мы, студенты ДВГУПСа программной инженерии,\
 	решили создать всё это, чтобы ваша жизнь стала чуточку легче:
@@ -143,8 +157,8 @@ async def about_devs(message: types.Message):
 	\nВлад - создал базу данных с использованием SQL
 	\nПодробнее о нас вы можете узнать, кликнув по кнопке"""
 
-	markup.add(back_button)
 	await message.answer(info_line, reply_markup=markup)
+	await send_settings(message)
 
 @dp.message_handler()
 async def not_understand(message:types.Message):
@@ -157,6 +171,8 @@ async def not_understand(message:types.Message):
 		await send_rating(message)
 	elif "настройки" in row:
 		await send_settings(message)
+	elif "изменить инфу" in row:
+		await change_info(message)
 	elif "назад" in row:
 		await send_welcome(message)
 	elif "о разработчиках" in row:
