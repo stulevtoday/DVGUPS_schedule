@@ -28,6 +28,11 @@ class UserState(StatesGroup):
 @dp.message_handler(commands="start")
 async def get_info(message: types.Message):
 	await message.reply("Hi!\nI am FESTU schedule bot")
+	line = """Возможности:
+		\nрасписание - получить расписание
+		\nуспеваемость - получить успеваемость
+		\nнастройки - изменить данные / получить информацию о разработчиках"""
+	await message.answer(line)
 	await message.answer("Введите номер вашей группы")
 	#setting user group
 	await UserState.group.set()
@@ -69,12 +74,8 @@ async def send_welcome(message: types.Message):
 	settings_button = types.KeyboardButton(text="настройки")
 	keyboard.row(shedule_button, rating_button)
 	keyboard.add(settings_button)
-	line = """Возможности:
-		\nрасписание - получить расписание
-		\nуспеваемость - получить успеваемость
-		\nнастройки - изменить данные / получить информацию о разработчиках"""
 
-	await message.answer(line, reply_markup=keyboard)
+	await message.answer("Чем помочь?", reply_markup=keyboard)
 
 @dp.message_handler(commands=["расписание"])
 async def send_shedule(message: types.Message):
@@ -83,9 +84,9 @@ async def send_shedule(message: types.Message):
 	info about shedule by pushing button "/расписание" 
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	today_button = types.KeyboardButton(text="/сегодня")
-	tommorow_button = types.KeyboardButton(text="/завтра")
-	back_button = types.KeyboardButton(text='/назад')
+	today_button = types.KeyboardButton(text="сегодня")
+	tommorow_button = types.KeyboardButton(text="завтра")
+	back_button = types.KeyboardButton(text='назад')
 
 	markup.row(today_button, tommorow_button)
 	markup.add(back_button)
@@ -94,9 +95,9 @@ async def send_shedule(message: types.Message):
 
 @dp.message_handler(commands=["сегодня", "завтра"])
 async def send_timetable_for(message: types.Message):
-	if message.text == "/сегодня":
+	if message.text == "сегодня":
 		await message.answer("расписание на сегодня")
-	elif message.text == "/завтра":
+	elif message.text == "завтра":
 		await message.answer("расписание на завтра")
 
 @dp.message_handler(commands=["успеваемость"])
@@ -133,9 +134,7 @@ async def about_devs(message: types.Message):
 	This handler will send info about us
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	firuz_button = types.KeyboardButton(text="о Фирузе")
-	danya_button = types.KeyboardButton(text="о Дане")
-	vlad_button = types.KeyboardButton(text="о Владе")
+	back_button = types.KeyboardButton(text="Назад")
 
 	info_line = """Мы, студенты ДВГУПСа программной инженерии,\
 	решили создать всё это, чтобы ваша жизнь стала чуточку легче:
@@ -144,8 +143,7 @@ async def about_devs(message: types.Message):
 	\nВлад - создал базу данных с использованием SQL
 	\nПодробнее о нас вы можете узнать, кликнув по кнопке"""
 
-	markup.row(firuz_button, danya_button)
-	markup.add(vlad_button)
+	markup.add(back_button)
 	await message.answer(info_line, reply_markup=markup)
 
 @dp.message_handler()
@@ -153,10 +151,14 @@ async def not_understand(message:types.Message):
 	row = message.text.strip().lower()
 	if "расписание" in row:
 		await send_shedule(message)
+	elif ("сегодня" in row) or ("завтра" in row):
+		await send_timetable_for(message)
 	elif "успеваемость" in row:
 		await send_rating(message)
 	elif "настройки" in row:
 		await send_settings(message)
+	elif "назад" in row:
+		await send_welcome(message)
 	elif "о разработчиках" in row:
 		await about_devs(message)
 	else:
