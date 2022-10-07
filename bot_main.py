@@ -63,14 +63,14 @@ async def send_welcome(message: types.Message):
 	"""
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
 		one_time_keyboard=True)
-	shedule_button = types.KeyboardButton(text="/расписание")
-	rating_button = types.KeyboardButton(text="/успеваемость")
+	shedule_button = types.KeyboardButton(text="расписание")
+	rating_button = types.KeyboardButton(text="успеваемость")
 
 	keyboard.add(shedule_button, rating_button)
 
 	await message.answer("""Возможности:
-		\n/расписание - получить расписание
-		\n/успеваемость - получить успеваемость""", 
+		\nрасписание - получить расписание
+		\nуспеваемость - получить успеваемость""", 
 		reply_markup=keyboard)
 
 @dp.message_handler(commands=["расписание"])
@@ -100,7 +100,7 @@ async def send_rating(message: types.Message):
 
 
 @dp.message_handler(commands=["сегодня", "завтра"])
-async def send_timetable_for_today(message: types.Message):
+async def send_timetable_for(message: types.Message):
 	if message.text == "/сегодня":
 		await message.answer("расписание на сегодня")
 	elif message.text == "/завтра":
@@ -110,7 +110,13 @@ async def send_timetable_for_today(message: types.Message):
 
 @dp.message_handler()
 async def not_understand(message:types.Message):
-	await message.answer("Прости, не понимаю тебя")
+	row = message.text.strip().lower()
+	if "расписание" in row:
+		await send_shedule(message)
+	elif "успеваемость" in row:
+		await send_rating(message)
+	else:
+		await message.answer("Прости, не понимаю тебя")
 
 
 if __name__ == "__main__":
