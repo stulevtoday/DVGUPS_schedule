@@ -23,10 +23,7 @@ dp = Dispatcher(bot, storage=storage)
 
 class UserState(StatesGroup):
 	group = State()
-	first_name = State()
-	surname = State()
-	# отчество
-	patronymic = State()
+	username = State()
 
 @dp.message_handler(commands="start")
 async def get_info(message: types.Message):
@@ -38,31 +35,25 @@ async def get_info(message: types.Message):
 @dp.message_handler(state=UserState.group)
 async def get_usergroup(message: types.Message, state: FSMContext):
 	await state.update_data(group=message.text)
-	await message.answer("Отлично! Теперь введите ваше имя")
-	await UserState.first_name.set()
+	await message.answer("Отлично! Теперь введите ваше ФИО")
+	await UserState.username.set()
 
-@dp.message_handler(state=UserState.first_name)
+@dp.message_handler(state=UserState.username)
 async def get_username(message: types.Message, state: FSMContext):
-	await state.update_data(first_name=message.text)
-	await message.answer("Отлично! Теперь введите вашу фамилию")
-	await UserState.surname.set()
+	name = message.text.split()
+	if len(name) != 3:
+		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз")
+		await UserState.username.set()
+	else:
+		await state.update_data(username=name)
+		data = await state.get_data()
+		line = "Приветствуем вас, {0} {1} {2}". \
+		format(name[0], name[1], name[2])
+		await message.answer(line)
+		await state.finish()
 
-@dp.message_handler(state=UserState.surname)
-async def get_usersurname(message: types.Message, state: FSMContext):
-	await state.update_data(surname=message.text)
-	await message.answer("Отлично! Теперь введите ваше отчество")
-	await UserState.patronymic.set()
-
-@dp.message_handler(state=UserState.patronymic)
-async def get_userpatronymic(message: types.Message, state: FSMContext):
-	await state.update_data(patronymic=message.text)
-	data = await state.get_data()
-	line = "Приветствуем вас, {0} {1} {2}". \
-	format(data['surname'], data['first_name'],
-		data['patronymic'])
-	await message.answer(line)
-	await message.answer("Отлично! Вся необходимая информация заполнена")
-	await send_welcome(message)
+		await message.answer("Отлично! Вся необходимая информация заполнена")
+		await send_welcome(message)
 
 @dp.message_handler(commands=["help", "назад"])
 async def send_welcome(message: types.Message):
@@ -73,13 +64,13 @@ async def send_welcome(message: types.Message):
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
 		one_time_keyboard=True)
 	shedule_button = types.KeyboardButton(text="/расписание")
-	rating_button = types.KeyboardButton(text="/рейтинг")
+	rating_button = types.KeyboardButton(text="/успеваемость")
 
 	keyboard.add(shedule_button, rating_button)
 
 	await message.answer("""Возможности:
 		\n/расписание - получить расписание
-		\n/рейтинг - получить рейтинг""", 
+		\n/успеваемость - получить успеваемость""", 
 		reply_markup=keyboard)
 
 @dp.message_handler(commands=["расписание"])
@@ -99,13 +90,13 @@ async def send_shedule(message: types.Message):
 	await message.reply("На какой вам день?", 
 		reply_markup=markup)
 
-@dp.message_handler(commands=['рейтинг'])
+@dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
 	"""
 	This handler will be called when user sends
 	"рейтинг"
 	"""
-	await message.answer("рейтинг")
+	await message.answer("успеваемость")
 
 
 @dp.message_handler(commands=["сегодня", "завтра"])
