@@ -1,6 +1,6 @@
 # library for logging activities
 import logging
-
+import aiogram
 from aiogram import Bot, Dispatcher, executor, types
 
 # memory for fsm
@@ -21,43 +21,74 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
+user_dict = {
+	"username": None,
+	"group": None,
+}
+
 class UserState(StatesGroup):
 	group = State()
 	username = State()
 
 @dp.message_handler(commands="start")
 async def get_info(message: types.Message):
-	await message.reply("Hi!\nI am FESTU schedule bot")
-	line = """Возможности:
-		\nрасписание - получить расписание
-		\nуспеваемость - получить успеваемость
-		\nнастройки - изменить данные / получить информацию о разработчиках"""
-	await message.answer(line)
-	await message.answer("Введите номер вашей группы")
+	text = """Привет, я бот ДВГУПС.\
+	\nМеня зовут Лизи!\
+	\nЯ создана для того, чтобы помочь тебе в суровой студенческой жизни.\
+	\nНо для начала, давай познакомимся...
+	\nКак тебя зовут? (ФИО)"""
+	await message.answer(text)
 	#setting user group
-	await UserState.group.set()
-
-@dp.message_handler(state=UserState.group)
-async def get_usergroup(message: types.Message, state: FSMContext):
-	await state.update_data(group=message.text)
-	await message.answer("Отлично! Теперь введите ваше ФИО")
 	await UserState.username.set()
 
 @dp.message_handler(state=UserState.username)
-async def get_username(message: types.Message, state: FSMContext):
+async def get_usergroup(message: types.Message, state: FSMContext):
 	name = message.text.split()
 	if len(name) != 3:
-		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз")
+		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз.")
 		await UserState.username.set()
 	else:
-		await state.update_data(username=name)
-		data = await state.get_data()
-		line = "Приветствуем вас, {0} {1} {2}". \
-		format(name[0], name[1], name[2])
-		await message.answer(line)
+		global user_dict
+		our_info = ' '.join([i.capitalize() for i in message.text.split()])
+		if user_dict["username"]:
+			user_dict["username"] = our_info
+			await state.update_data(username=message.text)
+			await state.finish()
+			await message.answer("Имя изменено.")
+			await change_info(message)
+		else:
+			user_dict["username"] = our_info
+			await state.update_data(username=message.text)
+			text = "Приятно познакомиться, {}!\
+			\nА теперь, позволь узнать мне... Из какой ты группы?".format(user_dict["username"].split()[1])
+			await message.answer(text)
+			await UserState.group.set()
+
+@dp.message_handler(state=UserState.group)
+async def get_username(message: types.Message, state: FSMContext):
+	global user_dict
+	if user_dict["group"]:
+		user_dict["group"] = message.text.upper()
+		await state.update_data(group=message.text.upper())
+		await state.finish()
+		await message.answer("Номер группы изменён.")
+		await change_info(message)
+	else:
+		await state.update_data(group=message.text)
 		await state.finish()
 
-		await message.answer("Отлично! Вся необходимая информация заполнена")
+		user_dict["group"] = message.text.upper()
+
+		await message.answer("Вау, отлично!")
+		line = "Сейчас я расскажу тебе немного о себе.\
+		\n\nЯ могу выполнять несколько команд:\
+		\n\nРасписание - позволит узнать расписание на сегодняшний и завтрашний день\
+		\n\nУспеваемость - даст возможность увидеть свою успеваемость по всем предметам.\
+		\n\nНастройки - тут ты сможешь изменить номер своей\
+		 группы или ФИО, в случае некорректного ввода.\
+		 Или прочитать о тех, кто меня создал:)"
+		msg = await message.answer(line)
+		await bot.pin_chat_message(message.from_user.id, msg.message_id)
 		await send_welcome(message)
 
 @dp.message_handler(commands=["help", "назад"])
@@ -68,14 +99,20 @@ async def send_welcome(message: types.Message):
 	"""
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
 		one_time_keyboard=True)
-	shedule_button = types.KeyboardButton(text="расписание")
-	rating_button = types.KeyboardButton(text="успеваемость")
+	shedule_button = types.KeyboardButton(text="Расписание")
+	rating_button = types.KeyboardButton(text="Успеваемость")
 
-	settings_button = types.KeyboardButton(text="настройки")
+	settings_button = types.KeyboardButton(text="Настройки")
 	keyboard.row(shedule_button, rating_button)
 	keyboard.add(settings_button)
+	msg_text = message.text.lower()
+	if ("назад" in msg_text) or ("успеваемость" in msg_text) or \
+	("измени" in msg_text) or ("всё верно"in msg_text) or ("о разработчиках" in msg_text):
+		line = "Чем помочь?"
+	else:
+		line = "С чего начнём?"
 
-	await message.answer("Чем помочь?", reply_markup=keyboard)
+	await message.answer(line, reply_markup=keyboard)
 
 @dp.message_handler(commands=["расписание"])
 async def send_shedule(message: types.Message):
@@ -84,20 +121,22 @@ async def send_shedule(message: types.Message):
 	info about shedule by pushing button "/расписание" 
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	today_button = types.KeyboardButton(text="сегодня")
-	tommorow_button = types.KeyboardButton(text="завтра")
-	back_button = types.KeyboardButton(text='назад')
+	today_button = types.KeyboardButton(text="Сегодня")
+	tommorow_button = types.KeyboardButton(text="Завтра")
+	back_button = types.KeyboardButton(text='Назад')
 
 	markup.row(today_button, tommorow_button)
 	markup.add(back_button)
-	await message.reply("На какой вам день?", 
+	await message.reply("На какой день ты хочешь узнать расписание?", 
 		reply_markup=markup)
 
 @dp.message_handler(commands=["сегодня", "завтра"])
 async def send_timetable_for(message: types.Message):
-	if message.text == "сегодня":
+	if message.text == "Сегодня":
+		# send photo
 		await message.answer("расписание на сегодня")
-	elif message.text == "завтра":
+	elif message.text == "Завтра":
+		# send_photo
 		await message.answer("расписание на завтра")
 
 @dp.message_handler(commands=["успеваемость"])
@@ -116,24 +155,23 @@ async def send_settings(message: types.Message):
 	"настройки" or "/настройки"
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	change_group = types.KeyboardButton(text="изменить инфо")
+	change_userinfo = types.KeyboardButton(text="Профиль")
 	about_developers = types.KeyboardButton(text="О разработчиках")
-	back_button = types.KeyboardButton(text="вернуться к настройкам")
+	back_button = types.KeyboardButton(text="Назад")
 
-	markup.row(change_group, about_developers)
+	markup.row(change_userinfo, about_developers)
 	markup.add(back_button)
 
-	line = """Опции:
-				\nизменить группу - изменить номер группы
-				\nизменить ФИО - указать новые данные ФИО
-				\nО разработчиках - узнать больше о студентах ДВГУПСа, которые разработали всё это"""
-	await message.answer(line, reply_markup=markup)
+	await message.answer("Что ты хочешь?", reply_markup=markup)
 
-@dp.message_handler(commands=['изменить инфо'])
+@dp.message_handler(commands=['профиль'])
 async def change_info(message: types.Message):
 	"""
 	This handler will ...
 	"""
+	line = """Тебя зовут {0},\
+	\nты из группы {1}.\
+	\nИли я в чём-то ошиблась?""".format(user_dict["username"], user_dict["group"])
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	change_name = types.KeyboardButton(text="изменить ФИО")
 	change_group = types.KeyboardButton(text="изменить группу")
@@ -142,7 +180,30 @@ async def change_info(message: types.Message):
 	markup.row(change_name, change_group)
 	markup.add(back_button)
 
-	await message.answer("Изменить профиль", reply_markup=markup)
+	await message.answer(line, reply_markup=markup)
+
+@dp.message_handler(commands=["изменить_фио"])
+async def change_username(message: types.Message):
+	"""
+	This handler will ...
+	"""
+	line = "Ой, похоже, я неверно записала твоё имя.\
+	\n\nВведи своё фамилию, имя, отчество."
+
+	await message.answer(line)
+	await UserState.username.set()
+
+@dp.message_handler(commands=["изменить_группу"])
+async def change_group(message: types.Message):
+	"""
+	This handler will ...
+	"""
+	line = "Ой, видимо, я что-то перепутала, давай исправим.\
+	\n\nВведи номер своей группы."
+
+	await message.answer(line)
+	await UserState.group.set()
+
 @dp.message_handler(commands=["разработчики"])
 async def about_devs(message: types.Message):
 	"""
@@ -150,19 +211,20 @@ async def about_devs(message: types.Message):
 	"""
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-	info_line = """Мы, студенты ДВГУПСа программной инженерии,\
-	решили создать всё это, чтобы ваша жизнь стала чуточку легче:
-	\nФируз - создал бота на aiogram
-	\nДаня - создал парсер на основе selenium'а
-	\nВлад - создал базу данных с использованием SQL
-	\nПодробнее о нас вы можете узнать, кликнув по кнопке"""
+	info_line = """\
+	Ух ты! Ты решил узнать о тех кто меня создал?\
+	\nТогда слушай:
+	\n\nФируз - https://vk.com/middledev
+	\n\nДаня - https://vk.com/stulevtoday
+	\n\nВлад - https://vk.com/id544196085"""
 
 	await message.answer(info_line, reply_markup=markup)
-	await send_settings(message)
+	await send_welcome(message)
 
 @dp.message_handler()
 async def not_understand(message:types.Message):
 	row = message.text.strip().lower()
+	help_words = ['help', 'помоги', "помогите"]
 	if "расписание" in row:
 		await send_shedule(message)
 	elif ("сегодня" in row) or ("завтра" in row):
@@ -171,9 +233,15 @@ async def not_understand(message:types.Message):
 		await send_rating(message)
 	elif "настройки" in row:
 		await send_settings(message)
-	elif "изменить инфу" in row:
+	elif "профиль" in row:
 		await change_info(message)
-	elif "назад" in row:
+	elif "изменить фио" in row:
+		await change_username(message)
+	elif "изменить группу" in row:
+		await change_group(message)
+	elif "всё верно" in row:
+		await send_welcome(message)
+	elif ("назад" in row) or (any([(word in row) for word in help_words])):
 		await send_welcome(message)
 	elif "о разработчиках" in row:
 		await about_devs(message)
