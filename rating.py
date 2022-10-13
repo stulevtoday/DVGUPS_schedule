@@ -18,6 +18,8 @@ def rating(*, groupname: str, username: str):
     from selenium.webdriver.common.by import By
 
     try:
+        driver.get(rating_url)
+
         driver.switch_to.frame(driver.find_element(By.NAME, 'iframe'))
         driver.find_element(By.ID, 'ctl00_ContentPlaceHolder1_LinkButtonFind').click()
 
@@ -50,3 +52,5 @@ def rating(*, groupname: str, username: str):
     finally:
         driver.close()
         driver.quit()
+
+rating(username='Стулёв Данил Евгеньевич', groupname='БО211ПИН')
