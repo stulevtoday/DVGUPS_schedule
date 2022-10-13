@@ -9,7 +9,9 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from aiogram.dispatcher import FSMContext
-from settings import API_TOKEN
+from settings import API_TOKEN, rating_url
+
+import schedule_rating
 
 #from schedule_rating import main
 
@@ -143,8 +145,13 @@ async def send_timetable_for(message: types.Message):
 async def send_rating(message: types.Message):
 	"""
 	This handler will be called when user sends
-	"рейтинг"
+	"успеваемость"
 	"""
+	rating = schedule_rating.main()
+
+	rating(url=rating_url,
+		username=user_dict["username"],
+		groupname=user_dict["group"])
 	await message.answer("успеваемость")
 	await send_welcome(message)
 

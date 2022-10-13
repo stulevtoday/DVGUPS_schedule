@@ -2,13 +2,14 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+from settings import chromedriver_path
 # options | required settings
 options = Options()
 # used for ease of writing code | in future this func will be disabled
 options.add_argument("start-maximized")
 # path to chromedriver
 driver = webdriver.Chrome(
-    service=Service(r'C:\Users\Danil\PycharmProjects\selenium\chromedriver_win32\chromedriver.exe'),
+    service=Service(chromedriver_path),
     options=options)  # Optional argument, if not specified will search path.
 
 schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&view=newtimetable'
@@ -151,6 +152,7 @@ def main():
     finally:
         driver.close()
         driver.quit()
+    return rating
 
 if __name__ == "__main__":
     main()
