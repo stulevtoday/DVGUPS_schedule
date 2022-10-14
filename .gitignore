@@ -3,3 +3,4 @@
 \check_chromedriver.py
 settings.py
 \__pycache__/
+*.png
