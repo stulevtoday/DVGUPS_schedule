@@ -46,50 +46,38 @@ async def get_info(message: types.Message):
 	await UserState.username.set()
 
 @dp.message_handler(state=UserState.username)
-async def get_usergroup(message: types.Message, state: FSMContext):
+async def get_username(message: types.Message, state: FSMContext):
 	name = message.text.split()
 	if len(name) != 3:
 		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз.")
 		await UserState.username.set()
 	else:
+		our_info = ' '.join([i.capitalize() for i in message.text.split()])
 		try:
 			# узнаём, пользовался ли пользователь ботом прежде
-			search.user_pull(message.from_user.id)
+			search.user_pull(id=message.from_user.id)
 		except IndexError:
 			# значит user впервые, нужно продолжить сбор данных
-			await state.update_data(username=message.text)
+			await state.update_data(username=our_info)
 			text = "Приятно познакомиться, {}!\
-			\nА теперь, позволь узнать мне... Из какой ты группы?".format(user_dict["username"].split()[1])
+			\nА теперь, позволь узнать мне... Из какой ты группы?".format(our_info.split()[1])
 			await message.answer(text)
 			await UserState.group.set()
 		else:
 			# если пользователь существует,
-			# нужно будет изменить данные о нём
-			pass
-		"""
-		global user_dict
-		our_info = ' '.join([i.capitalize() for i in message.text.split()])
-		if user_dict["username"]:
-			user_dict["username"] = our_info
-			await state.update_data(username=message.text)
-			await state.finish()
+			# нужно будет изменить имя о нём
+			search.user_name_ch(id=message.from_user.id,
+				newname=our_info)
 			await message.answer("Имя изменено.")
 			await change_info(message)
-		else:
-			user_dict["username"] = our_info
-			await state.update_data(username=message.text)
-			text = "Приятно познакомиться, {}!\
-			\nА теперь, позволь узнать мне... Из какой ты группы?".format(user_dict["username"].split()[1])
-			await message.answer(text)
-			await UserState.group.set()
-		"""
+
 
 @dp.message_handler(state=UserState.group)
-async def get_username(message: types.Message, state: FSMContext):
+async def get_usergroup(message: types.Message, state: FSMContext):
 	try:
 		# проверка на указание нормальной группы
 		group_line = message.text.upper()
-		info_group_inst = await search.group_parse(group_line)
+		info_group_inst = search.group_parse(group_line)
 	except IndexError:
 		info_line = "Прости, такую группу я не знаю.\
 		\nПопробуй ещё раз ввести свою группу."
@@ -108,32 +96,26 @@ async def get_username(message: types.Message, state: FSMContext):
 				id_group=info_group_inst[0],
 				id_fac=info_group_inst[1],
 				fullname=data_from_state['username'])
+			await state.finish()
 
+			await message.answer("Вау, отлично!")
+			line = "Сейчас я расскажу тебе немного о себе.\
+			\n\nЯ могу выполнять несколько команд:\
+			\n\nРасписание - позволит узнать расписание на сегодняшний и завтрашний день\
+			\n\nУспеваемость - даст возможность увидеть свою успеваемость по всем предметам.\
+			\n\nНастройки - тут ты сможешь изменить номер своей\
+			группы или ФИО, в случае некорректного ввода.\
+			Или прочитать о тех, кто меня создал:)"
+			msg = await message.answer(line)
+			await bot.pin_chat_message(message.from_user.id, msg.message_id)
+			await send_welcome(message)
+		else:
+			# если хочет изменить группу
+			search.user_group_ch(id=message.from_user.id,
+				newgroup_id=info_group_inst[0])
+			await message.answer("Номер группы изменён.")
+			await change_info(message)
 
-	global user_dict
-	if user_dict["group"]:
-		user_dict["group"] = message.text.upper()
-		await state.update_data(group=message.text.upper())
-		await state.finish()
-		await message.answer("Номер группы изменён.")
-		await change_info(message)
-	else:
-		await state.update_data(group=message.text)
-		await state.finish()
-
-		user_dict["group"] = message.text.upper()
-
-		await message.answer("Вау, отлично!")
-		line = "Сейчас я расскажу тебе немного о себе.\
-		\n\nЯ могу выполнять несколько команд:\
-		\n\nРасписание - позволит узнать расписание на сегодняшний и завтрашний день\
-		\n\nУспеваемость - даст возможность увидеть свою успеваемость по всем предметам.\
-		\n\nНастройки - тут ты сможешь изменить номер своей\
-		 группы или ФИО, в случае некорректного ввода.\
-		 Или прочитать о тех, кто меня создал:)"
-		msg = await message.answer(line)
-		await bot.pin_chat_message(message.from_user.id, msg.message_id)
-		await send_welcome(message)
 
 @dp.message_handler(commands=["help", "назад"])
 async def send_welcome(message: types.Message):
@@ -189,8 +171,11 @@ async def send_rating(message: types.Message):
 	This handler will be called when user sends
 	"успеваемость"
 	"""
+	data = search.user_pull(id=message.from_user.id)
+
 	filename = rating.rating(username=user_dict["username"],
 		groupname=user_dict["group"])
+
 	with open(filename, 'rb') as file:
 		await message.answer_photo(file)
 	await send_welcome(message)
@@ -216,9 +201,11 @@ async def change_info(message: types.Message):
 	"""
 	This handler will ...
 	"""
+	user = search.user_pull(id=message.from_user.id)
 	line = """Тебя зовут {0},\
 	\nты из группы {1}.\
-	\nИли я в чём-то ошиблась?""".format(user_dict["username"], user_dict["group"])
+	\nИли я в чём-то ошиблась?"""\
+	.format()
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	change_name = types.KeyboardButton(text="изменить ФИО")
 	change_group = types.KeyboardButton(text="изменить группу")
