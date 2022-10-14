@@ -186,10 +186,15 @@ async def send_rating(message: types.Message):
 
 	filename = rating.rating(username=fullname,
 		groupname=group_line)
-
-	with open(filename, 'rb') as file:
-		await message.answer_photo(file)
-	await send_welcome(message)
+	try:
+		with open(filename, 'rb') as file:
+			await message.answer_photo(file)
+	except FileNotFoundError:
+		await message.answer("Для пользователя с таким именем успеваемость не найдена.\
+			\nПроверь свои данные.")
+		await change_info(message)
+	else:
+		await send_welcome(message)
 
 @dp.message_handler(commands=["настройки"])
 async def send_settings(message: types.Message):
@@ -220,9 +225,9 @@ async def change_info(message: types.Message):
 	\nИли я в чём-то ошиблась?"""\
 	.format(user[-1], group_line)
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	change_name = types.KeyboardButton(text="изменить ФИО")
-	change_group = types.KeyboardButton(text="изменить группу")
-	back_button = types.KeyboardButton(text="всё верно")
+	change_name = types.KeyboardButton(text="Изменить ФИО")
+	change_group = types.KeyboardButton(text="Изменить группу")
+	back_button = types.KeyboardButton(text="Всё верно")
 
 	markup.row(change_name, change_group)
 	markup.add(back_button)

@@ -15,7 +15,7 @@ import os.path
 # options | required settings
 options = Options()
 # used for ease of writing code | in future this func will be disabled
-options.add_argument("start-maximized")
+options.add_argument("headless")
 # path to chromedriver
 driver = webdriver.Chrome(
     service=Service(chromedriver_path),
