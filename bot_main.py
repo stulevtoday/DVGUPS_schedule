@@ -36,14 +36,21 @@ class UserState(StatesGroup):
 
 @dp.message_handler(commands="start")
 async def get_info(message: types.Message):
-	text = """Привет, я бот ДВГУПС.\
-	\nМеня зовут Лизи!\
-	\nЯ создана для того, чтобы помочь тебе в суровой студенческой жизни.\
-	\nНо для начала, давай познакомимся...
-	\nКак тебя зовут? (ФИО)"""
-	await message.answer(text)
-	#setting user group
-	await UserState.username.set()
+	try:
+		search.user_pull(id=message.from_user.id)
+	except IndexError:
+		# если человек впервые
+		text = """Привет, я бот ДВГУПС.\
+		\nМеня зовут Лизи!\
+		\nЯ создана для того, чтобы помочь тебе в суровой студенческой жизни.\
+		\nНо для начала, давай познакомимся...
+		\nКак тебя зовут? (ФИО)"""
+		await message.answer(text)
+		#setting user group
+		await UserState.username.set()
+	else:
+		# если был до этого
+		await change_info(message)
 
 @dp.message_handler(state=UserState.username)
 async def get_username(message: types.Message, state: FSMContext):
@@ -68,6 +75,7 @@ async def get_username(message: types.Message, state: FSMContext):
 			# нужно будет изменить имя о нём
 			search.user_name_ch(id=message.from_user.id,
 				newname=our_info)
+			await state.finish()
 			await message.answer("Имя изменено.")
 			await change_info(message)
 
@@ -113,6 +121,7 @@ async def get_usergroup(message: types.Message, state: FSMContext):
 			# если хочет изменить группу
 			search.user_group_ch(id=message.from_user.id,
 				newgroup_id=info_group_inst[0])
+			await state.finish()
 			await message.answer("Номер группы изменён.")
 			await change_info(message)
 
@@ -172,9 +181,11 @@ async def send_rating(message: types.Message):
 	"успеваемость"
 	"""
 	data = search.user_pull(id=message.from_user.id)
+	group_line = search.names_parse(data[1])
+	fullname = data[-1]
 
-	filename = rating.rating(username=user_dict["username"],
-		groupname=user_dict["group"])
+	filename = rating.rating(username=fullname,
+		groupname=group_line)
 
 	with open(filename, 'rb') as file:
 		await message.answer_photo(file)
@@ -202,10 +213,12 @@ async def change_info(message: types.Message):
 	This handler will ...
 	"""
 	user = search.user_pull(id=message.from_user.id)
+	group_line = search.names_parse(group_id=user[1])
+
 	line = """Тебя зовут {0},\
 	\nты из группы {1}.\
 	\nИли я в чём-то ошиблась?"""\
-	.format()
+	.format(user[-1], group_line)
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	change_name = types.KeyboardButton(text="изменить ФИО")
 	change_group = types.KeyboardButton(text="изменить группу")
