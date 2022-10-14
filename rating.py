@@ -25,7 +25,7 @@ rating_url = 'https://www.dvgups.ru/studtopmenu/student-rating'
 
 def rating(*, groupname: str, username: str):
     time_now = str(datetime.now()).split()[0].split("-")
-    filename = username + str(group_parse(groupname)[0]) + "_" + time_now[1] + '.' + time_now[0] + ".png"
+    filename = username + str(group_parse(groupname)[0]) + "_" + time_now[2] + '.' + time_now[1] + ".png"
     if os.path.exists(filename):
         return filename
 
