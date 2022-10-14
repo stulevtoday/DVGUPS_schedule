@@ -41,7 +41,10 @@ def user_group_ch(id, newgroup_id):
     import sqlite3
     db = sqlite3.connect('main_DB')
     cursor = db.cursor()
-    cursor.execute("""UPDATE users SET group_id=? WHERE id=?""", (newgroup_id, id))
+    newfac_id = cursor.execute("""SELECT id_fac FROM group_to_facs WHERE id=?""", (newgroup_id,)).fetchall()[0]
+    cursor.execute("""UPDATE users SET group_id=?, fac_id=? WHERE id=?""", (newgroup_id, newfac_id[0], id))
     db.commit()
     db.close()
+
+
 
