@@ -27,3 +27,21 @@ def user_pull(id):
     db.commit()
     db.close()
 
+
+def user_name_ch(id, newname):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    cursor.execute("""UPDATE users SET fullname=? WHERE id=?""", (newname, id))
+    db.commit()
+    db.close()
+
+
+def user_group_ch(id, newgroup_id):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    cursor.execute("""UPDATE users SET group_id=? WHERE id=?""", (newgroup_id, id))
+    db.commit()
+    db.close()
+
