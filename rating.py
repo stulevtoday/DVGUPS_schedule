@@ -3,6 +3,15 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 from settings import chromedriver_path
+
+from search import group_parse
+
+from datetime import datetime
+
+from time import sleep
+from selenium.webdriver.common.by import By
+
+import os.path
 # options | required settings
 options = Options()
 # used for ease of writing code | in future this func will be disabled
@@ -15,8 +24,10 @@ driver = webdriver.Chrome(
 rating_url = 'https://www.dvgups.ru/studtopmenu/student-rating'
 
 def rating(*, groupname: str, username: str):
-    from time import sleep
-    from selenium.webdriver.common.by import By
+    time_now = str(datetime.now()).split()[0].split("-")
+    filename = username + str(group_parse(groupname)[0]) + "_" + time_now[1] + '.' + time_now[0] + ".png"
+    if os.path.exists(filename):
+        return filename
 
     try:
         driver.get(rating_url)
@@ -40,7 +51,7 @@ def rating(*, groupname: str, username: str):
         sleep(5)
 
         driver.find_element(By.ID, 'ctl00_ContentPlaceHolder1_ASPxGridView1_DXMainTable').screenshot(
-            'person_rating.png')
+            filename)
 
         sleep(3)
 
@@ -50,8 +61,9 @@ def rating(*, groupname: str, username: str):
         print(ex)
         driver.refresh()
 
-    finally:
-        driver.close()
-        driver.quit()
+    return filename
+def main():
+    rating(username='Стулёв Данил Евгеньевич', groupname='БО211ПИН')
 
-rating(username='Стулёв Данил Евгеньевич', groupname='БО211ПИН')
+if __name__ == "__main__":
+    main()

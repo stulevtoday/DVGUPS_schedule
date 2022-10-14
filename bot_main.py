@@ -13,6 +13,8 @@ from settings import API_TOKEN, rating_url
 
 import rating
 
+import search
+
 #from schedule_rating import main
 
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +52,21 @@ async def get_usergroup(message: types.Message, state: FSMContext):
 		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз.")
 		await UserState.username.set()
 	else:
+		try:
+			# узнаём, пользовался ли пользователь ботом прежде
+			search.user_pull(message.from_user.id)
+		except IndexError:
+			# значит user впервые, нужно продолжить сбор данных
+			await state.update_data(username=message.text)
+			text = "Приятно познакомиться, {}!\
+			\nА теперь, позволь узнать мне... Из какой ты группы?".format(user_dict["username"].split()[1])
+			await message.answer(text)
+			await UserState.group.set()
+		else:
+			# если пользователь существует,
+			# нужно будет изменить данные о нём
+			pass
+		"""
 		global user_dict
 		our_info = ' '.join([i.capitalize() for i in message.text.split()])
 		if user_dict["username"]:
@@ -65,9 +82,34 @@ async def get_usergroup(message: types.Message, state: FSMContext):
 			\nА теперь, позволь узнать мне... Из какой ты группы?".format(user_dict["username"].split()[1])
 			await message.answer(text)
 			await UserState.group.set()
+		"""
 
 @dp.message_handler(state=UserState.group)
 async def get_username(message: types.Message, state: FSMContext):
+	try:
+		# проверка на указание нормальной группы
+		group_line = message.text.upper()
+		info_group_inst = await search.group_parse(group_line)
+	except IndexError:
+		info_line = "Прости, такую группу я не знаю.\
+		\nПопробуй ещё раз ввести свою группу."
+		await message.answer(info_line)
+		await UserState.group.set()
+	else:
+		# если ввели нормальную группу
+		try:
+			# впервые ли пользователь определяется здесь
+			search.user_pull(message.from_user.id)
+		except IndexError:
+			# если впервые
+			await state.update_data(group=group_line)
+			data_from_state = await state.get_data()
+			search.user_add(id=message.from_user.id,
+				id_group=info_group_inst[0],
+				id_fac=info_group_inst[1],
+				fullname=data_from_state['username'])
+
+
 	global user_dict
 	if user_dict["group"]:
 		user_dict["group"] = message.text.upper()
@@ -147,9 +189,10 @@ async def send_rating(message: types.Message):
 	This handler will be called when user sends
 	"успеваемость"
 	"""
-	rating.rating(username=user_dict["username"],
+	filename = rating.rating(username=user_dict["username"],
 		groupname=user_dict["group"])
-	await message.answer("успеваемость")
+	with open(filename, 'rb') as file:
+		await message.answer_photo(file)
 	await send_welcome(message)
 
 @dp.message_handler(commands=["настройки"])
