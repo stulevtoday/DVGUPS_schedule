@@ -47,4 +47,12 @@ def user_group_ch(id, newgroup_id):
     db.close()
 
 
+def names_parse(group_id):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    a = cursor.execute("""SELECT name FROM group_to_facs WHERE id=?""", (group_id,)).fetchall()[0]
+    return a[0]
+    db.commit()
+    db.close()
 
