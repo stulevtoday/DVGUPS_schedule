@@ -67,7 +67,7 @@ fac_ids = [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 
            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
 
 
-def schedule(*, time: str, facultet: str, group: str, dates: list):
+def schedule(*, time: str, facultet: str, group: str, dates):
     from selenium.webdriver.support.select import Select
 
     try:
@@ -97,12 +97,12 @@ def schedule(*, time: str, facultet: str, group: str, dates: list):
             headers.append('.'.join(h))
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
 
-        for id in range(len(headers)):
-            if headers[id] == dates[0]:
-                schedule_elements[id].screenshot(group + '_' + dates[0] + '.png')
-
-            elif headers[id] == dates[1]:
-                schedule_elements[id].screenshot(group + '_' + dates[1] + '.png')
+        for id_i in range(len(headers)):
+            if headers[id_i] == dates[0]:
+                schedule_elements[id_i].screenshot(group + '_' + dates[0] + '.png')
+            elif len(dates) > 1:
+                if headers[id_i] == dates[1]:
+                    schedule_elements[id_i].screenshot(group + '_' + dates[1] + '.png')
 
         driver.refresh()
 
@@ -164,16 +164,24 @@ elif day_of_week > 4:
 driver.get(schedule_url)
 
 # today and tomorrow dates
+first_streak = str(first_streak).split('-')
+first_streak = first_streak[2] + '.' + first_streak[1] + "." + first_streak[0]
+
+second_streak = str(second_streak).split("-")
+second_streak = second_streak[2] + "." + second_streak[1] +"." + second_streak[0]
+
 dates = {date1: first_streak,
 date2: second_streak}
-
-try:
+if second_streak == first_streak:
+    dates = list(dates.keys())
+print(dates, first_streak)
+if type(dates) == list:
+    for i in range(len(gr_ids)):
+        schedule(time=first_streak, facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=[dates])
+else:
     for i in range(len(gr_ids)):
         for date in dates.keys():
-            schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=date)
-except Exception as e:
-    print(e)
+            schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=list(date))
 
-finally:
-    driver.close()
-    driver.quit()
+driver.close()
+driver.quit()
