@@ -5,13 +5,16 @@ from time import sleep
 from datetime import date, timedelta
 from selenium.webdriver.common.by import By
 
+from settings import chromedriver_path
+import datetime
+
 # options | required settings
 options = Options()
 # used for ease of writing code | in future this func will be disabled
 options.add_argument("start-maximized")
 # path to chromedriver
 driver = webdriver.Chrome(
-    service=Service(r'C:\Users\Danil\PycharmProjects\selenium\chromedriver_win32\chromedriver.exe'),
+    service=Service(chromedriver_path),
     options=options)  # Optional argument, if not specified will search path.
 
 schedule_url = 'https://dvgups.ru/index.php?Itemid=1246&option=com_timetable&view=newtimetable'
@@ -106,21 +109,70 @@ def schedule(*, time: str, facultet: str, group: str, dates: list):
     except Exception as ex:
         print(ex)
 
+def to_standart_after(today, days_after: int):
+    # добавляет к нынешнему времени
+    # определённое количество дней
+    # и возвращает дату
+    raw_date = str(today + timedelta(days=days_after)).split('-')
+    return raw_date[2] + '.' + raw_date[1]
+
+def check_streak(today, first_streak, days):
+    if (today + timedelta(days=days)) == (first_streak + timedelta(days=14)):
+        return first_streak + timedelta(14)
+    return first_streak
+
+
+# стартовый поток
+first_streak = datetime.date(2022, 10, 10)
+today = date.today()
+day_of_week = datetime.datetime.today().weekday()
+
+while not(first_streak <= today < first_streak + timedelta(days=14)):
+    # пока не в нужном диапазоне
+    first_streak += timedelta(days=14)
+second_streak = first_streak
+
+if day_of_week < 4:
+    # всё норм, всё на этой неделе
+    date1 = to_standart_after(today=today, days_after=0)
+    
+    date2 = to_standart_after(today=today, days_after=1)
+elif day_of_week == 4:
+    # если сегодня пятница
+    date1 = to_standart_after(today=today, days_after=0)
+    # нужно проверить по селектору для следующего понедельника
+    second_streak = check_streak(today, first_streak, 3)
+    # следующий день отправляем понедельник
+    date2 = to_standart_after(today=today, days_after=3)
+elif day_of_week > 4:
+    # если сегодня суббота или вообще воскресение
+    # то мы отправим понедельник и вторник
+    if day_of_week == 5:
+        # если сегодня суббота
+        days = 2
+        first_streak = check_streak(today, first_streak, 2)
+        second_streak = first_streak
+    elif day_of_week == 6:
+        # если сегодня воскресенье
+        days = 1
+        first_streak = check_streak(today, first_streak, 1)
+        second_streak = first_streak
+    date1 = to_standart_after(today=today, days_after=days)
+    
+    date2 = to_standart_after(today=today, days_after=(days+1))
+# open schedule URL
+driver.get(schedule_url)
+
+# today and tomorrow dates
+dates = {date1: first_streak,
+date2: second_streak}
 
 try:
-    # open schedule URL
-    driver.get(schedule_url)
-
-    # today and tomorrow dates
-    dates = [str(date.today()).split('-')[2] + '.' + str(date.today()).split('-')[1],
-             str(date.today() + timedelta(days=1)).split('-')[2] + '.' +
-             str(date.today() + timedelta(days=1)).split('-')[1]]
-
     for i in range(len(gr_ids)):
-        schedule(time='10.10.2022', facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=dates)
-
-except Exception as ex:
-    print(ex)
+        for date in dates.keys():
+            schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=date)
+except Exception as e:
+    print(e)
 
 finally:
     driver.close()
