@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 
 from settings import chromedriver_path
 import datetime
+import search
 
 # options | required settings
 options = Options()
@@ -107,6 +108,12 @@ def schedule(*, time: str, facultet: str, group: str, dates):
                 if headers[id_i] == dates[1]:
                     filename_tommorow = group + '_' + dates[1] + '.png' 
                     schedule_elements[id_i].screenshot(filename_tommorow)
+        if filename_today:
+            # добавляет в таблицу
+            search.schedule_today_ch(int(group), filename_today)
+        if filename_tommorow:
+            # добавляет в таблицу
+            search.schedule_tomorrow_ch(int(group), filename_tommorow)
 
         driver.refresh()
 

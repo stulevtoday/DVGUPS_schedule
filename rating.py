@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.service import Service
 
 from settings import chromedriver_path
 
-from DVGUPS_schedule.search import group_parse
+from search import group_parse
 
 from datetime import datetime
 

@@ -12,7 +12,7 @@ from settings import API_TOKEN
 
 import rating
 
-from DVGUPS_schedule import search
+import search
 
 #from schedule_rating import main
 
@@ -166,12 +166,20 @@ async def send_shedule(message: types.Message):
 
 @dp.message_handler(commands=["сегодня", "завтра"])
 async def send_timetable_for(message: types.Message):
+	group_info_user = search.user_pull(message.from_user.id)[1]
+
 	if message.text == "Сегодня":
 		# send photo
+		filename = search.schedule_name_today(group_info_user)
 		await message.answer("расписание на сегодня")
+		with open(filename, "rb") as file:
+			await message.answer_photo(file)
 	elif message.text == "Завтра":
 		# send_photo
+		filename = search.schedule_name_tomorrow(group_info_user)
 		await message.answer("расписание на завтра")
+		with open(filename, "rb") as file:
+			await message.answer_photo(filename)
 
 @dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
