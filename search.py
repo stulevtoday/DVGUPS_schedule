@@ -56,3 +56,40 @@ def names_parse(group_id):
     db.commit()
     db.close()
 
+
+def schedule_today_ch(group_id, newname):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    cursor.execute("""UPDATE group_to_facs SET today_schedule=? WHERE id=?""", (newname, group_id))
+    db.commit()
+    db.close()
+
+
+def schedule_tomorrow_ch(group_id, newname):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    cursor.execute("""UPDATE group_to_facs SET tommorow_schedule=? WHERE id=?""", (newname, group_id))
+    db.commit()
+    db.close()
+
+
+def schedule_name_today(group_id):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    a = cursor.execute("""SELECT today_schedule FROM group_to_facs WHERE id=?""", (group_id,)).fetchall()[0]
+    return a[0]
+    db.commit()
+    db.close()
+
+
+def schedule_name_tomorrow(group_id):
+    import sqlite3
+    db = sqlite3.connect('main_DB')
+    cursor = db.cursor()
+    a = cursor.execute("""SELECT tommorow_schedule FROM group_to_facs WHERE id=?""", (group_id,)).fetchall()[0]
+    return a[0]
+    db.commit()
+    db.close()

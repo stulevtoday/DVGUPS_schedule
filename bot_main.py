@@ -1,6 +1,5 @@
 # library for logging activities
 import logging
-import aiogram
 from aiogram import Bot, Dispatcher, executor, types
 
 # memory for fsm
@@ -9,11 +8,11 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from aiogram.dispatcher import FSMContext
-from settings import API_TOKEN, rating_url
+from settings import API_TOKEN
 
 import rating
 
-import search
+from DVGUPS_schedule import search
 
 #from schedule_rating import main
 
@@ -74,7 +73,7 @@ async def get_username(message: types.Message, state: FSMContext):
 			# если пользователь существует,
 			# нужно будет изменить имя о нём
 			search.user_name_ch(id=message.from_user.id,
-				newname=our_info)
+                                newname=our_info)
 			await state.finish()
 			await message.answer("Имя изменено.")
 			await change_info(message)
@@ -101,9 +100,9 @@ async def get_usergroup(message: types.Message, state: FSMContext):
 			await state.update_data(group=group_line)
 			data_from_state = await state.get_data()
 			search.user_add(id=message.from_user.id,
-				id_group=info_group_inst[0],
-				id_fac=info_group_inst[1],
-				fullname=data_from_state['username'])
+                            id_group=info_group_inst[0],
+                            id_fac=info_group_inst[1],
+                            fullname=data_from_state['username'])
 			await state.finish()
 
 			await message.answer("Вау, отлично!")
@@ -120,7 +119,7 @@ async def get_usergroup(message: types.Message, state: FSMContext):
 		else:
 			# если хочет изменить группу
 			search.user_group_ch(id=message.from_user.id,
-				newgroup_id=info_group_inst[0])
+                                 newgroup_id=info_group_inst[0])
 			await state.finish()
 			await message.answer("Номер группы изменён.")
 			await change_info(message)
