@@ -97,12 +97,16 @@ def schedule(*, time: str, facultet: str, group: str, dates):
             headers.append('.'.join(h))
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
 
+        filename_today = None
+        filename_tommorow = None
         for id_i in range(len(headers)):
             if headers[id_i] == dates[0]:
-                schedule_elements[id_i].screenshot(group + '_' + dates[0] + '.png')
+                filename_today = group + '_' + dates[0] + '.png'
+                schedule_elements[id_i].screenshot(filename1)
             elif len(dates) > 1:
                 if headers[id_i] == dates[1]:
-                    schedule_elements[id_i].screenshot(group + '_' + dates[1] + '.png')
+                    filename_tommorow = group + '_' + dates[1] + '.png' 
+                    schedule_elements[id_i].screenshot(filename_tommorow)
 
         driver.refresh()
 
