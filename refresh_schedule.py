@@ -97,18 +97,21 @@ def schedule(*, time: str, facultet: str, group: str, dates):
             h = header.text.split('.')[:2]
             headers.append('.'.join(h))
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
-
         filename_today = None
         filename_tommorow = None
+        print(headers)
         for id_i in range(len(headers)):
             if headers[id_i] == dates[0]:
+                print(headers[id_i])
                 filename_today = group + '_' + dates[0] + '.png'
-                schedule_elements[id_i].screenshot(filename1)
-            elif len(dates) > 1:
+                schedule_elements[id_i].screenshot(filename_today)
+            if len(dates) > 1:
                 if headers[id_i] == dates[1]:
+                    print(headers[id_i])
                     filename_tommorow = group + '_' + dates[1] + '.png' 
                     schedule_elements[id_i].screenshot(filename_tommorow)
         if filename_today:
+            print(filename_today)
             # добавляет в таблицу
             search.schedule_today_ch(int(group), filename_today)
         if filename_tommorow:
@@ -185,7 +188,9 @@ dates = {date1: first_streak,
 date2: second_streak}
 if second_streak == first_streak:
     dates = list(dates.keys())
-print(dates, first_streak)
+
+schedule(time=first_streak, facultet="2", group="52749", dates=dates)
+"""schedule(time=first_streak, facultet="2", group="52752", dates=dates)
 if type(dates) == list:
     for i in range(len(gr_ids)):
         schedule(time=first_streak, facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=[dates])
@@ -193,6 +198,6 @@ else:
     for i in range(len(gr_ids)):
         for date in dates.keys():
             schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=list(date))
-
+"""
 driver.close()
 driver.quit()

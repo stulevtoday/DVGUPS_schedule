@@ -131,8 +131,7 @@ async def send_welcome(message: types.Message):
 	This handler will be called when user sends 
 	"/start" and "/help"
 	"""
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
-		one_time_keyboard=True)
+	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	shedule_button = types.KeyboardButton(text="Расписание")
 	rating_button = types.KeyboardButton(text="Успеваемость")
 
@@ -179,7 +178,7 @@ async def send_timetable_for(message: types.Message):
 		filename = search.schedule_name_tomorrow(group_info_user)
 		await message.answer("расписание на завтра")
 		with open(filename, "rb") as file:
-			await message.answer_photo(filename)
+			await message.answer_photo(file)
 
 @dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
@@ -275,9 +274,10 @@ async def about_devs(message: types.Message):
 	\nТогда слушай:
 	\n\nФируз - https://vk.com/middledev
 	\n\nДаня - https://vk.com/stulevtoday
-	\n\nВлад - https://vk.com/id544196085"""
+	\n\nВлад - https://vk.com/id544196085
+	\n\nЛёва - https://vk.com/l_slonc"""
 
-	await message.answer(info_line, reply_markup=markup)
+	await message.answer(info_line, reply_markup=markup, disable_web_page_preview=True)
 	await send_welcome(message)
 
 @dp.message_handler()
