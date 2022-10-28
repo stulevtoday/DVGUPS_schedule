@@ -180,7 +180,7 @@ async def send_timetable_for(message: types.Message):
 		info = process(group=group_info_user, agreement="З")
 	msg = ""
 	for key in info.keys():
-		msg += key + ": " + info[key] + "\n\n"
+		msg += key + ": " + info[key][0] + " " + info[key][-1] + "\n\n"
 	if msg:
 		await message.answer(msg)
 	else:

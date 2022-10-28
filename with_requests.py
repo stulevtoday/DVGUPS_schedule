@@ -17,7 +17,7 @@ def collect_timetable(time="24.10.2022",
 	
 	data = {
 		#"Time":time,
-		'GroupID': '52752'
+		'GroupID': group
 	}
 
 	r = requests.post(url=url, data=data)
@@ -33,17 +33,26 @@ def for_timetable(filename, today):
 	timetable = soup.find_all("h3")
 
 	info = {}
-	for dat in timetable:
-		if today in dat.text:
-			k = dat.next_sibling
-			pairs = k.find_all("b")
-			for pair in pairs:
-				row_line = pair.find_next().text.split()
-				print(row_line)
-				row_line = row_line[:-1]
-				row_line[-1] = row_line[-1].split("FreeConferenceCall")[0]
-				row_line[-1] = row_line[-1].split("Контакты")[0]
-				info[pair.text] = " ".join(row_line)
+	important_time = ""
+	for time in timetable:
+		if today in time.next_element:
+			important_time = time
+			break
+	if not(important_time):
+		return info
+		
+	tb_for_today = important_time.next_sibling
+
+	trs = tb_for_today.find_all("tr")
+
+	info = {}
+	for tr in trs:
+		tds = tr.find_all("td")
+		subj_info = []
+		for td_i in range(1, 3):
+			subj_info.append((tds[td_i].next_element))
+		info[tds[0].next_element.next_element] = subj_info
+
 	return info
 
 def process(group="52752", agreement="С"):
