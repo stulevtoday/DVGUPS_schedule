@@ -70,7 +70,7 @@ fac_ids = [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 
 
 def schedule(*, time: str, facultet: str, group: str, dates):
     from selenium.webdriver.support.select import Select
-
+    print(dates)
     try:
         # select timeline
         select_element = driver.find_element(By.NAME, 'time')
@@ -99,7 +99,6 @@ def schedule(*, time: str, facultet: str, group: str, dates):
         schedule_elements = select_element.find_elements(By.TAG_NAME, 'tbody')
         filename_today = None
         filename_tommorow = None
-        print(headers)
         for id_i in range(len(headers)):
             if headers[id_i] == dates[0]:
                 print(headers[id_i])
@@ -107,11 +106,10 @@ def schedule(*, time: str, facultet: str, group: str, dates):
                 schedule_elements[id_i].screenshot(filename_today)
             if len(dates) > 1:
                 if headers[id_i] == dates[1]:
-                    print(headers[id_i])
                     filename_tommorow = group + '_' + dates[1] + '.png' 
                     schedule_elements[id_i].screenshot(filename_tommorow)
+        print(filename_today)
         if filename_today:
-            print(filename_today)
             # добавляет в таблицу
             search.schedule_today_ch(int(group), filename_today)
         if filename_tommorow:
@@ -157,8 +155,9 @@ elif day_of_week == 4:
     # нужно проверить по селектору для следующего понедельника
     second_streak = check_streak(today, first_streak, 3)
     # следующий день отправляем понедельник
-    date2 = to_standart_after(today=today, days_after=3)
-elif day_of_week > 4:
+    #date2 = to_standart_after(today=today, days_after=3)
+    date2 = None
+"""elif day_of_week > 4:
     # если сегодня суббота или вообще воскресение
     # то мы отправим понедельник и вторник
     if day_of_week == 5:
@@ -174,7 +173,7 @@ elif day_of_week > 4:
     date1 = to_standart_after(today=today, days_after=days)
     
     date2 = to_standart_after(today=today, days_after=(days+1))
-# open schedule URL
+"""# open schedule URL
 driver.get(schedule_url)
 
 # today and tomorrow dates
@@ -190,14 +189,14 @@ if second_streak == first_streak:
     dates = list(dates.keys())
 
 schedule(time=first_streak, facultet="2", group="52749", dates=dates)
-"""schedule(time=first_streak, facultet="2", group="52752", dates=dates)
-if type(dates) == list:
+schedule(time=first_streak, facultet="2", group="52752", dates=dates)
+"""if type(dates) == list:
     for i in range(len(gr_ids)):
-        schedule(time=first_streak, facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=[dates])
+        schedule(time=first_streak, facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=dates)
 else:
     for i in range(len(gr_ids)):
         for date in dates.keys():
-            schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=list(date))
+            schedule(time=dates[date], facultet=str(fac_ids[i]), group=str(gr_ids[i]), dates=[date])
 """
 driver.close()
 driver.quit()

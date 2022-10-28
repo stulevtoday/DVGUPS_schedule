@@ -5,10 +5,13 @@ from aiogram import Bot, Dispatcher, executor, types
 # memory for fsm
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 # states for getting info grom user
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from aiogram.dispatcher import FSMContext
 from settings import API_TOKEN
+
+from with_requests import process
 
 import rating
 
@@ -22,7 +25,9 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 # storage inside operative memory
 storage = MemoryStorage()
+
 dp = Dispatcher(bot, storage=storage)
+dp.middleware.setup(LoggingMiddleware())
 
 user_dict = {
 	"username": None,
@@ -165,20 +170,21 @@ async def send_shedule(message: types.Message):
 
 @dp.message_handler(commands=["сегодня", "завтра"])
 async def send_timetable_for(message: types.Message):
-	group_info_user = search.user_pull(message.from_user.id)[1]
+	group_info_user = str(search.user_pull(message.from_user.id)[1])
 
 	if message.text == "Сегодня":
-		# send photo
-		filename = search.schedule_name_today(group_info_user)
-		await message.answer("расписание на сегодня")
-		with open(filename, "rb") as file:
-			await message.answer_photo(file)
+		await message.answer("Расписание на сегодня: \n")
+		info = process(group=group_info_user, agreement="С")
 	elif message.text == "Завтра":
-		# send_photo
-		filename = search.schedule_name_tomorrow(group_info_user)
-		await message.answer("расписание на завтра")
-		with open(filename, "rb") as file:
-			await message.answer_photo(file)
+		await message.answer("Расписание на завтра: \n")
+		info = process(group=group_info_user, agreement="З")
+	msg = ""
+	for key in info.keys():
+		msg += key + ": " + info[key] + "\n\n"
+	if msg:
+		await message.answer(msg)
+	else:
+		await message.answer("Завтра нет занятий :)")
 
 @dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
