@@ -11,12 +11,12 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from settings import API_TOKEN
 
-from with_requests import process
+from timetable import process
 
-import rating
+from rating_with_req import info_rating
 
 import search
-
+import re
 #from schedule_rating import main
 
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +59,7 @@ async def get_info(message: types.Message):
 @dp.message_handler(state=UserState.username)
 async def get_username(message: types.Message, state: FSMContext):
 	name = message.text.split()
-	if len(name) != 3:
+	if len(name) != 3 or any(re.search('\d', one) for one in name):
 		await message.answer("Вы ввели имя некорректно, попробуйте ещё раз.")
 		await UserState.username.set()
 	else:
@@ -178,13 +178,17 @@ async def send_timetable_for(message: types.Message):
 	elif message.text == "Завтра":
 		await message.answer("Расписание на завтра: \n")
 		info = process(group=group_info_user, agreement="З")
-	msg = ""
-	for key in info.keys():
-		msg += key + ": " + info[key][0] + " " + info[key][-1] + "\n\n"
-	if msg:
-		await message.answer(msg)
+	if info.keys():
+		msg = ""
+		for key in info.keys():
+			msg += key + ": " + "\n" + info[key][0] + " " + "\n" +info[key][-1] + "\n\n"
+		if msg:
+			await message.answer(msg)
 	else:
-		await message.answer("Завтра нет занятий :)")
+		if message.text == "Сегодня":
+			await message.answer("Сегодня нет занятий :)")
+		elif message.text == "Завтра":
+			await message.answer("Завтра нет занятий :)")
 
 @dp.message_handler(commands=["успеваемость"])
 async def send_rating(message: types.Message):
@@ -195,12 +199,23 @@ async def send_rating(message: types.Message):
 	data = search.user_pull(id=message.from_user.id)
 	group_line = search.names_parse(data[1])
 	fullname = data[-1]
-
-	filename = rating.rating(username=fullname,
-		groupname=group_line)
 	try:
-		with open(filename, 'rb') as file:
-			await message.answer_photo(file)
+		results = info_rating(username=fullname,
+			group=group_line)
+		if results:
+			msg = "Успеваемость указана в формате 'Твоя/План':\n\n"
+			current_res = ""
+			for result in results:
+				tmp = result[2]
+				if tmp == "-":
+					tmp = 0
+				current_res += "{}: {}/{}\n\n".format(result[0], tmp, result[1])
+			if current_res:
+				await message.answer(msg + current_res)
+			else:
+				raise FileNotFoundError
+		else:
+			await message.answer("Твоего имени нет с списке группы(")
 	except FileNotFoundError:
 		await message.answer("Для пользователя с таким именем успеваемость не найдена.\
 			\nПроверь свои данные.")
