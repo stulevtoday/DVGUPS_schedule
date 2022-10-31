@@ -7,7 +7,10 @@ from datetime import date
 import os.path
 
 def rating(group, username):
-	name= username.split()
+	if username:
+		name = username.split()
+	else:
+		name = ["","",""]
 	today = parse_date(date.today())
 	filename = str(group) + "_" + today + "_" + "rating" + ".json"
 	if os.path.exists(filename):

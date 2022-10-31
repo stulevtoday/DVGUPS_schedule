@@ -62,6 +62,15 @@ def for_timetable(filename):
 		info = json.load(file)
 	return info
 
+def for_update(group):
+	date_of = parse_date(date.today())
+	filename = group + "_" + date_of + "_" +"schedule" + ".json"
+	collect_timetable(group=group, date_of=date_of)
+
+	date_of = parse_date(date.today() + timedelta(days=1))
+	filename = group + "_" + date_of + "_" +"schedule" + ".json"
+	collect_timetable(group=group, date_of=date_of)
+
 
 def process(group="52749", agreement="З"):
 	if agreement == "С":
