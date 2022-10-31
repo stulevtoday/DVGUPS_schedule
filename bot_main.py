@@ -298,7 +298,8 @@ async def about_devs(message: types.Message):
 	\n\nФируз - https://vk.com/middledev
 	\n\nДаня - https://vk.com/stulevtoday
 	\n\nВлад - https://vk.com/id544196085
-	\n\nЛёва - https://vk.com/l_slonc"""
+	\n\nЛёва - https://vk.com/l_slonc
+	\n\nПСПО ДВГУПС - https://vk.com/profkomkhv"""
 
 	await message.answer(info_line, reply_markup=markup, disable_web_page_preview=True)
 	await send_welcome(message)
@@ -369,9 +370,9 @@ async def update():
 		for gr_id in gr_ids:
 			groupname = search.names_parse(gr_id)
 			for_update(str(gr_id))
-			await asyncio.sleep(3)
+			await asyncio.sleep(1)
 			rating(group=groupname, username="")
-			await asyncio.sleep(3)
+			await asyncio.sleep(1)
 
 		await asyncio.sleep(24*60*60)
 
